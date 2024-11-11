@@ -543,7 +543,7 @@ bool liboai::Conversation::ParseStreamData(std::string data, std::string& delta_
 				continue;
 			}
 
-			if (j.contains("usage") && !j["usage"].is_null()) {
+			if (j.contains("usage") && !j["usage"].empty() && !j["usage"].is_null()) {
 				this->_last_usage = j["usage"];
 			}
 
