@@ -424,6 +424,10 @@ const nlohmann::json& liboai::Conversation::GetFunctionsJSON() const & noexcept 
 	return this->_functions.value();
 }
 
+const nlohmann::json& GetLastUsageJSON() const & noexcept {
+	return this->_last_usage;
+}
+
 std::vector<std::string> liboai::Conversation::SplitStreamedData(std::string data) const noexcept(false) {
 	// remove all instances of the string "data: " from the string
 	this->RemoveStrings(data, "data: ");
@@ -583,6 +587,11 @@ bool liboai::Conversation::ParseStreamData(std::string data, std::string& delta_
 							}
 						}
 					}
+				}else {
+					if (j.contains["usage"]) {
+						this->_last_usage = j["usage"];
+					}
+					return false;
 				}
 			} else {
 				return false; // no "choices" found - invalid
