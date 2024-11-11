@@ -543,6 +543,10 @@ bool liboai::Conversation::ParseStreamData(std::string data, std::string& delta_
 				continue;
 			}
 
+			if (j.contains("usage")) {
+				this->_last_usage = j["usage"];
+			}
+
 			if (j.contains("choices")) {
 				if (j["choices"][0].contains("delta")) {
 					if (!j["choices"][0]["delta"].empty() && !j["choices"][0]["delta"].is_null()) {
@@ -592,11 +596,6 @@ bool liboai::Conversation::ParseStreamData(std::string data, std::string& delta_
 							}
 						}
 					}
-				}else {
-					if (j.contains("usage")) {
-						this->_last_usage = j["usage"];
-					}
-					return false;
 				}
 			} else {
 				return false; // no "choices" found - invalid
