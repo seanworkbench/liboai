@@ -199,6 +199,11 @@ bool liboai::Conversation::Update(std::string_view response) & noexcept(false) {
 	// if response is non-empty
 	if (!response.empty()) {
 		nlohmann::json j = nlohmann::json::parse(response);
+
+		if (j.contains("usage") && !j["usage"].is_null() && !j["usage"].empty()) {
+			this->_last_usage = j["usage"];
+		}
+
 		if (j.contains("choices")) { // top level, several messages
 			for (auto& choice : j["choices"].items()) {
 				if (choice.value().contains("message")) {
@@ -424,6 +429,10 @@ const nlohmann::json& liboai::Conversation::GetFunctionsJSON() const & noexcept 
 	return this->_functions.value();
 }
 
+const nlohmann::json& liboai::Conversation::GetLastUsageJSON() const & noexcept {
+	return this->_last_usage;
+}
+
 std::vector<std::string> liboai::Conversation::SplitStreamedData(std::string data) const noexcept(false) {
 	// remove all instances of the string "data: " from the string
 	this->RemoveStrings(data, "data: ");
@@ -534,6 +543,10 @@ bool liboai::Conversation::ParseStreamData(std::string data, std::string& delta_
 				continue;
 			}
 
+			if (j.contains("usage") && !j["usage"].empty() && !j["usage"].is_null()) {
+				this->_last_usage = j["usage"];
+			}
+
 			if (j.contains("choices")) {
 				if (j["choices"][0].contains("delta")) {
 					if (!j["choices"][0]["delta"].empty() && !j["choices"][0]["delta"].is_null()) {
@@ -599,7 +612,7 @@ bool liboai::Conversation::ParseStreamData(std::string data, std::string& delta_
 
 
 
-liboai::Response liboai::ChatCompletion::create(const std::string& model, Conversation& conversation, std::optional<std::string> function_call, std::optional<float> temperature, std::optional<float> top_p, std::optional<uint16_t> n, std::optional<ChatStreamCallback> stream, std::optional<std::vector<std::string>> stop, std::optional<uint16_t> max_tokens, std::optional<float> presence_penalty, std::optional<float> frequency_penalty, std::optional<std::unordered_map<std::string, int8_t>> logit_bias, std::optional<std::string> user) const& noexcept(false) {
+liboai::Response liboai::ChatCompletion::create(const std::string& model, Conversation& conversation, std::optional<std::string> function_call, std::optional<float> temperature, std::optional<float> top_p, std::optional<uint16_t> n, std::optional<ChatStreamCallback> stream, std::optional<std::vector<std::string>> stop, std::optional<uint16_t> max_tokens, std::optional<float> presence_penalty, std::optional<float> frequency_penalty, std::optional<std::unordered_map<std::string, int8_t>> logit_bias, std::optional<std::string> user, bool enable_usage) const& noexcept(false) {
 	liboai::JsonConstructor jcon;
 	jcon.push_back("model", model);
 	jcon.push_back("temperature", std::move(temperature));
@@ -631,6 +644,12 @@ liboai::Response liboai::ChatCompletion::create(const std::string& model, Conver
 		};
 
 		jcon.push_back("stream", _sscb);
+
+		if (enable_usage){
+			nlohmann::json stream_options;
+			stream_options["include_usage"] = true;
+			jcon.push_back("stream_options", stream_options);
+		}
 	}
 
 	if (conversation.GetJSON().contains("messages")) {
@@ -640,6 +659,7 @@ liboai::Response liboai::ChatCompletion::create(const std::string& model, Conver
 	if (conversation.HasFunctions()) {
 		jcon.push_back("functions", conversation.GetFunctionsJSON()["functions"]);
 	}
+	
 
 	Response res;
 	res = this->Request(
@@ -657,7 +677,7 @@ liboai::Response liboai::ChatCompletion::create(const std::string& model, Conver
 	return res;
 }
 
-liboai::FutureResponse liboai::ChatCompletion::create_async(const std::string& model, Conversation& conversation, std::optional<std::string> function_call, std::optional<float> temperature, std::optional<float> top_p, std::optional<uint16_t> n, std::optional<ChatStreamCallback> stream, std::optional<std::vector<std::string>> stop, std::optional<uint16_t> max_tokens, std::optional<float> presence_penalty, std::optional<float> frequency_penalty, std::optional<std::unordered_map<std::string, int8_t>> logit_bias, std::optional<std::string> user) const& noexcept(false) {
+liboai::FutureResponse liboai::ChatCompletion::create_async(const std::string& model, Conversation& conversation, std::optional<std::string> function_call, std::optional<float> temperature, std::optional<float> top_p, std::optional<uint16_t> n, std::optional<ChatStreamCallback> stream, std::optional<std::vector<std::string>> stop, std::optional<uint16_t> max_tokens, std::optional<float> presence_penalty, std::optional<float> frequency_penalty, std::optional<std::unordered_map<std::string, int8_t>> logit_bias, std::optional<std::string> user, bool enable_usage) const& noexcept(false) {
 	liboai::JsonConstructor jcon;
 	jcon.push_back("model", model);
 	jcon.push_back("temperature", std::move(temperature));
@@ -689,6 +709,11 @@ liboai::FutureResponse liboai::ChatCompletion::create_async(const std::string& m
 		};
 
 		jcon.push_back("stream", _sscb);
+		if (enable_usage){
+			nlohmann::json stream_options;
+			stream_options["include_usage"] = true;
+			jcon.push_back("stream_options", stream_options);
+		}
 	}
 
 	if (conversation.GetJSON().contains("messages")) {

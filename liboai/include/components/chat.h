@@ -789,6 +789,11 @@ namespace liboai {
 			*/
 			[[nodiscard]] constexpr bool HasFunctions() const & noexcept { return this->_functions ? true : false; }
 
+			/*
+				@brief Returns the JSON object of the last usage from the API.
+			*/
+			LIBOAI_EXPORT const nlohmann::json& GetLastUsageJSON() const & noexcept;
+
 		private:
 			friend class ChatCompletion; friend class Azure;
 			[[nodiscard]] std::vector<std::string> SplitStreamedData(std::string data) const noexcept(false);
@@ -804,6 +809,7 @@ namespace liboai {
 			std::optional<nlohmann::json> _functions = std::nullopt;
 			bool _last_resp_is_fc = false;
 			std::string _last_incomplete_buffer;
+			nlohmann::json _last_usage;
 	};
 
 	class ChatCompletion final : private Network {
@@ -873,7 +879,8 @@ namespace liboai {
 				std::optional<float> presence_penalty = std::nullopt,
 				std::optional<float> frequency_penalty = std::nullopt,
 				std::optional<std::unordered_map<std::string, int8_t>> logit_bias = std::nullopt,
-				std::optional<std::string> user = std::nullopt
+				std::optional<std::string> user = std::nullopt,
+				bool enable_usage = false
 			) const & noexcept(false);
 
 			/*
@@ -934,7 +941,8 @@ namespace liboai {
 				std::optional<float> presence_penalty = std::nullopt,
 				std::optional<float> frequency_penalty = std::nullopt,
 				std::optional<std::unordered_map<std::string, int8_t>> logit_bias = std::nullopt,
-				std::optional<std::string> user = std::nullopt
+				std::optional<std::string> user = std::nullopt,
+				bool enable_usage = false
 			) const & noexcept(false);
 			
 		private:
