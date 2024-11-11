@@ -200,7 +200,7 @@ bool liboai::Conversation::Update(std::string_view response) & noexcept(false) {
 	if (!response.empty()) {
 		nlohmann::json j = nlohmann::json::parse(response);
 
-		if (j.contains("usage") && !j["usage"].is_null()) {
+		if (j.contains("usage") && !j["usage"].is_null() && !j["usage"].empty()) {
 			this->_last_usage = j["usage"];
 		}
 
