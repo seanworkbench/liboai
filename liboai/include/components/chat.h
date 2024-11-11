@@ -879,7 +879,8 @@ namespace liboai {
 				std::optional<float> presence_penalty = std::nullopt,
 				std::optional<float> frequency_penalty = std::nullopt,
 				std::optional<std::unordered_map<std::string, int8_t>> logit_bias = std::nullopt,
-				std::optional<std::string> user = std::nullopt
+				std::optional<std::string> user = std::nullopt,
+				bool enable_usage = false
 			) const & noexcept(false);
 
 			/*
@@ -940,7 +941,8 @@ namespace liboai {
 				std::optional<float> presence_penalty = std::nullopt,
 				std::optional<float> frequency_penalty = std::nullopt,
 				std::optional<std::unordered_map<std::string, int8_t>> logit_bias = std::nullopt,
-				std::optional<std::string> user = std::nullopt
+				std::optional<std::string> user = std::nullopt,
+				bool enable_usage = false
 			) const & noexcept(false);
 			
 		private:
