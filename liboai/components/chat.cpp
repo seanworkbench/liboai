@@ -424,7 +424,7 @@ const nlohmann::json& liboai::Conversation::GetFunctionsJSON() const & noexcept 
 	return this->_functions.value();
 }
 
-const nlohmann::json& GetLastUsageJSON() const & noexcept {
+const nlohmann::json& liboai::Conversation::GetLastUsageJSON() const & noexcept {
 	return this->_last_usage;
 }
 
@@ -588,7 +588,7 @@ bool liboai::Conversation::ParseStreamData(std::string data, std::string& delta_
 						}
 					}
 				}else {
-					if (j.contains["usage"]) {
+					if (j.contains("usage")) {
 						this->_last_usage = j["usage"];
 					}
 					return false;
